@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+.Python
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Data
+*.csv
+*.parquet
+data/raw/
+data/processed/
+
+# Cache
+.pytest_cache/
+.eslintcache
+
+# ML Models
+data/models/
+
+# Guides and Prompts
+CHATGPT_PROJECT_PROMPT.md
+DATASET_GUIDE.md
+DEPLOYMENT_ACTION_PLAN.md
+DEPLOYMENT_CHECKLIST.md
+IMPLEMENTATION_SUMMARY.md
+QUICK_START_CARD.md
+START_HERE.md
+TROUBLESHOOTING_GUIDE.md

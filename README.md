@@ -1,12 +1,95 @@
-# VayuGuard
+# VayuGuard - Hyperlocal Air Quality Forecasting Platform
 
-**A hyperlocal air-quality forecasting & health-advisory platform**
+A production-ready platform for real-time air quality monitoring, forecasting, and personalized health advisories across Indian cities using MERN stack + ML.
 
-> Built from scratch to production by four coordinated engineering tracks — Altrodav Industry Immersion Program · 45-Day Capstone · v1.0
+## 🚀 Quick Start
 
----
+### Prerequisites
+- Node.js 18+
+- Python 3.10+
+- Docker & Docker Compose
+- PostgreSQL 15 (optional, handled by Docker)
 
-## Table of Contents
+### Setup
+
+1. **Clone repository**
+```bash
+cd Vayuguard
+```
+
+2. **Configure environment**
+```bash
+cp .env.example .env
+# Edit .env with your API keys
+```
+
+3. **Start with Docker**
+```bash
+docker-compose up
+```
+
+The application will be available at:
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:5000`
+- ML Service: `http://localhost:8000`
+- PostgreSQL: `localhost:5432`
+
+## 📊 Project Structure
+
+```
+vayuguard/
+├── frontend/              # React + Leaflet map UI
+├── backend/               # Express.js API server
+├── ml-service/           # FastAPI ML prediction service
+├── data-pipeline/        # Python data processing & model training
+├── docker/               # Dockerfiles for all services
+├── .github/workflows/    # CI/CD pipeline
+├── docker-compose.yml    # Full stack orchestration
+└── README.md
+```
+
+## 🔄 Architecture
+
+```
+External Data Sources (OpenAQ, Open-Meteo)
+         ↓
+Data Ingestion Pipeline (Node.js scheduled jobs)
+         ↓
+PostgreSQL Database
+    ↙        ↘
+Backend API    Data Pipeline (Python)
+  ↓             ↓
+Frontend UI    ML Models (XGBoost)
+  ↓             ↓
+User Interface ML Service (FastAPI)
+```
+
+## 🎯 Features
+
+### Phase 1: MVP (Current)
+- ✅ Real-time AQI data from OpenAQ + Open-Meteo
+- ✅ Interactive map with location selector
+- ✅ 7-day historical trends
+- ✅ Pollutant breakdown (PM2.5, PM10, NO₂, O₃)
+- ✅ Mobile-responsive design
+- ✅ Health advisories based on AQI
+
+### Phase 2: Advanced (Planned)
+- 📈 24-72 hour AQI forecasts (XGBoost)
+- 🏥 Personalized health risk scoring
+- 🔔 Alert subscriptions by location
+- 📊 Analytics dashboards
+- 👤 User profiles and favorites
+
+### Phase 3: Production (Roadmap)
+- 🔐 Enterprise authentication
+- 🌍 Multi-country support
+- 📱 Mobile app
+- 🤖 Advanced ML pipelines
+
+## 📥 Dataset Sources for Model Training
+
+### 1. **Real-Time Air Quality Data** (Free)
 
 - [Overview](#overview)
 - [The Problem](#the-problem)
@@ -101,7 +184,7 @@ Postgres · KPIs · Insights   ──► AI/ML · forecast + risk             �
 
 Responsible for the full ML lifecycle: feature engineering (lag features, weather joins, time features), a baseline → classical → deep model progression for AQI forecasting, a health-risk scoring model, rigorous evaluation (MAE / RMSE, backtesting), a versioned FastAPI serving layer, and an automated retraining pipeline.
 
-**Model progression:** Persistence baseline → Prophet / ARIMA → XGBoost / GBM → LSTM / GRU
+**Model used:** XGBoost
 
 **Key deliverables:** `/forecast` and `/health-risk` FastAPI endpoints, model card, retraining pipeline.
 
@@ -168,7 +251,7 @@ Discovery                                          Hardening          Handover
 | Week | Focus |
 |------|-------|
 | **Week 3** · Days 11–15 | XGBoost model, FastAPI `/forecast` live, ingestion scaled to all cities, monitoring set up, app consuming real forecasts |
-| **Week 4** · Days 16–20 | LSTM/GRU model, `/health-risk` endpoint, Grafana dashboards, personalised advisory UI, automated deploys |
+| **Week 4** · Days 16–20 | Model tuning, `/health-risk` endpoint, Grafana dashboards, personalised advisory UI, automated deploys |
 | **Week 5** · Days 21–25 | Retraining pipeline, drift checks, Nginx gateway, feature-complete app on staging |
 
 ---

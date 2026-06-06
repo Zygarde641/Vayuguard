@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Leaflet styles */
+@import 'leaflet/dist/leaflet.css';
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+.aqi-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 24px;
+  color: white;
+}
+
+.aqi-good {
+  background-color: #4caf50;
+}
+
+.aqi-satisfactory {
+  background-color: #8bc34a;
+}
+
+.aqi-lightly-polluted {
+  background-color: #fdd835;
+  color: #333;
+}
+
+.aqi-moderately-polluted {
+  background-color: #ff9800;
+}
+
+.aqi-heavily-polluted {
+  background-color: #f44336;
+}
+
+.aqi-severely-polluted {
+  background-color: #7c1d12;
+}
+
+.map-container {
+  height: 500px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}

@@ -1,0 +1,25 @@
+{
+  "name": "vayuguard",
+  "version": "1.0.0",
+  "description": "Hyperlocal air-quality forecasting & health-advisory platform",
+  "scripts": {
+    "dev": "docker-compose up",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:pipeline": "cd data-pipeline && python main.py",
+    "build": "cd backend && npm install && cd ../frontend && npm install && npm run build",
+    "test": "cd backend && npm test"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "keywords": [
+    "air-quality",
+    "aqi",
+    "forecasting",
+    "health-advisory"
+  ],
+  "author": "Altrodav Team",
+  "license": "MIT"
+}
