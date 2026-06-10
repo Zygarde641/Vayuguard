@@ -5,52 +5,209 @@
 /* Leaflet styles */
 @import 'leaflet/dist/leaflet.css';
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
+:root {
+  --color-good: #10b981;
+  --color-satisfactory: #84cc16;
+  --color-light-polluted: #eab308;
+  --color-moderate-polluted: #f97316;
+  --color-heavy-polluted: #ef4444;
+  --color-severe-polluted: #7c2d12;
 }
 
-.aqi-badge {
-  display: inline-flex;
+body {
+  margin: 0;
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #0f172a;
+  color: #f8fafc;
+  overflow: hidden;
+}
+
+/* Custom Scrollbar for the sidebar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* Glassmorphism Panel styles */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: rgba(30, 41, 59, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* Leaflet Dark Theme Overrides */
+.leaflet-container {
+  background-color: #0b0f19 !important;
+  font-family: inherit;
+}
+
+/* Position Leaflet controls nicely */
+.leaflet-left .leaflet-control {
+  margin-left: 20px !important;
+}
+
+.leaflet-top .leaflet-control {
+  margin-top: 20px !important;
+}
+
+.leaflet-control-zoom {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  background-color: rgba(15, 23, 42, 0.85) !important;
+  color: #f8fafc !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.2s;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  background-color: rgba(30, 41, 59, 0.95) !important;
+  color: #38bdf8 !important;
+}
+
+/* Leaflet Popup Styling to fit Dark Mode */
+.leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.9) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Pulsating Markers for Map */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.aqi-pulse-marker {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: white;
+  font-weight: 700;
+  font-size: 11px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  font-weight: bold;
-  font-size: 24px;
-  color: white;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  transition: all 0.3s;
+  cursor: pointer;
 }
 
-.aqi-good {
-  background-color: #4caf50;
+.aqi-pulse-marker:hover {
+  transform: scale(1.15);
+  z-index: 1000 !important;
 }
 
-.aqi-satisfactory {
-  background-color: #8bc34a;
+/* Glow classes based on AQI levels */
+.aqi-glow-good {
+  background-color: var(--color-good);
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulse-good 2s infinite;
+}
+.aqi-glow-satisfactory {
+  background-color: var(--color-satisfactory);
+  box-shadow: 0 0 0 0 rgba(132, 204, 22, 0.7);
+  animation: pulse-satisfactory 2s infinite;
+}
+.aqi-glow-light-polluted {
+  background-color: var(--color-light-polluted);
+  color: #0f172a;
+  box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7);
+  animation: pulse-light 2s infinite;
+}
+.aqi-glow-moderate-polluted {
+  background-color: var(--color-moderate-polluted);
+  box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7);
+  animation: pulse-moderate 2s infinite;
+}
+.aqi-glow-heavy-polluted {
+  background-color: var(--color-heavy-polluted);
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulse-heavy 2s infinite;
+}
+.aqi-glow-severe-polluted {
+  background-color: var(--color-severe-polluted);
+  box-shadow: 0 0 0 0 rgba(124, 45, 18, 0.8);
+  animation: pulse-severe 2s infinite;
+}
+.aqi-glow-unknown {
+  background-color: #64748b;
+  box-shadow: 0 0 4px rgba(100, 116, 139, 0.5);
 }
 
-.aqi-lightly-polluted {
-  background-color: #fdd835;
-  color: #333;
+@keyframes pulse-good {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
-
-.aqi-moderately-polluted {
-  background-color: #ff9800;
+@keyframes pulse-satisfactory {
+  0% { box-shadow: 0 0 0 0 rgba(132, 204, 22, 0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(132, 204, 22, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(132, 204, 22, 0); }
 }
-
-.aqi-heavily-polluted {
-  background-color: #f44336;
+@keyframes pulse-light {
+  0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(234, 179, 8, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
 }
-
-.aqi-severely-polluted {
-  background-color: #7c1d12;
+@keyframes pulse-moderate {
+  0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
 }
-
-.map-container {
-  height: 500px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+@keyframes pulse-heavy {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+@keyframes pulse-severe {
+  0% { box-shadow: 0 0 0 0 rgba(124, 45, 18, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(124, 45, 18, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(124, 45, 18, 0); }
 }
