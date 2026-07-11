@@ -2,24 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import api from '../services/api';
+import { getAqiBand } from '../utils/aqi';
 
-// Custom marker icon using CSS classes from index.css
+// Marker color comes from the shared AQI scale so map, cards and ambient agree
 const createMarkerIcon = (aqi) => {
-  let glowClass = 'aqi-glow-unknown';
-  
-  if (aqi !== null && aqi !== undefined) {
-    if (aqi < 50) glowClass = 'aqi-glow-good';
-    else if (aqi < 100) glowClass = 'aqi-glow-satisfactory';
-    else if (aqi < 150) glowClass = 'aqi-glow-light-polluted';
-    else if (aqi < 200) glowClass = 'aqi-glow-moderate-polluted';
-    else if (aqi < 300) glowClass = 'aqi-glow-heavy-polluted';
-    else glowClass = 'aqi-glow-severe-polluted';
-  }
+  const { color } = getAqiBand(aqi);
+  const value = aqi != null && !isNaN(aqi) ? aqi : '?';
 
   return L.divIcon({
-    html: `<div class="aqi-pulse-marker ${glowClass}">${aqi !== null && aqi !== undefined ? aqi : '?'}</div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    html: `<div class="aqi-marker" style="background:${color}">${value}</div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
     popupAnchor: [0, -16],
     className: 'custom-marker'
   });
@@ -37,6 +30,29 @@ function MapController({ selectedCity }) {
       });
     }
   }, [selectedCity, map]);
+
+  return null;
+}
+
+// Leaflet renders only a partial ("half") map when its container's size is not
+// final at init time — which happens inside grid/flex layouts. Recompute once
+// layout settles and whenever the container resizes.
+function MapResizeHandler() {
+  const map = useMap();
+
+  useEffect(() => {
+    const invalidate = () => map.invalidateSize();
+    const t = setTimeout(invalidate, 120);
+    const ro = new ResizeObserver(invalidate);
+    ro.observe(map.getContainer());
+    window.addEventListener('resize', invalidate);
+
+    return () => {
+      clearTimeout(t);
+      ro.disconnect();
+      window.removeEventListener('resize', invalidate);
+    };
+  }, [map]);
 
   return null;
 }
@@ -78,6 +94,7 @@ export default function Map({ locations, selectedCity, onSelectCity }) {
         />
 
         <MapController selectedCity={selectedCity} />
+        <MapResizeHandler />
 
         {/* Display markers for all locations or hotspots */}
         {activeLocations.map((location) => (

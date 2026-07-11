@@ -5,6 +5,40 @@ import AQICard from './components/AQICard';
 import ForecastCard from './components/ForecastCard';
 import TrendsChart from './components/TrendsChart';
 import api from './services/api';
+import { AQI_BANDS, getAqiBand } from './utils/aqi';
+
+const DEFAULT_TINT = '#4cc7e6';
+
+function BreathMark() {
+  return (
+    <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <circle cx="16" cy="16" r="3" fill="var(--sky)" />
+      <path d="M16 9a7 7 0 0 1 7 7" stroke="var(--sky)" strokeWidth="2" strokeLinecap="round" opacity="0.75" />
+      <path d="M16 4a12 12 0 0 1 12 12" stroke="var(--sky)" strokeWidth="2" strokeLinecap="round" opacity="0.4" />
+    </svg>
+  );
+}
+
+function AqiLegend() {
+  return (
+    <div className="panel p-4">
+      <p className="eyebrow mb-3">AQI scale · CPCB</p>
+      <div className="space-y-1.5">
+        {AQI_BANDS.map((b, i) => {
+          const lo = i === 0 ? 0 : AQI_BANDS[i - 1].max + 1;
+          const range = b.max === Infinity ? `${lo}+` : `${lo}–${b.max}`;
+          return (
+            <div key={b.label} className="flex items-center gap-2.5">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: b.color }} />
+              <span className="flex-1 text-xs text-[var(--mist-dim)]">{b.label}</span>
+              <span className="stat text-[11px] text-[var(--mist-faint)]">{range}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const [selectedCity, setSelectedCity] = useState(null);
@@ -14,12 +48,8 @@ export default function App() {
   const [error, setError] = useState(null);
   const [locations, setLocations] = useState([]);
 
-  // Fetch all locations on mount
-  useEffect(() => {
-    fetchAllLocations();
-  }, []);
+  useEffect(() => { fetchAllLocations(); }, []);
 
-  // Fetch AQI data when city is selected
   useEffect(() => {
     if (selectedCity) {
       fetchAQIData(selectedCity.id);
@@ -29,11 +59,10 @@ export default function App() {
 
   const fetchAllLocations = async () => {
     try {
-      const data = await api.getCurrentAQI();
-      setLocations(data);
+      setLocations(await api.getCurrentAQI());
     } catch (err) {
       console.error('Error fetching locations:', err);
-      setError('Failed to load locations');
+      setError('Could not load the map data. Check that the backend is running.');
     }
   };
 
@@ -41,11 +70,10 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getAQIByCityId(cityId);
-      setAqiData(data);
+      setAqiData(await api.getAQIByCityId(cityId));
     } catch (err) {
       console.error('Error fetching AQI data:', err);
-      setError('Failed to load AQI data');
+      setError('Could not load air data for this city. Try again.');
     } finally {
       setLoading(false);
     }
@@ -53,59 +81,60 @@ export default function App() {
 
   const fetchTrends = async (cityId) => {
     try {
-      const data = await api.getTrends(cityId, 30);
-      setTrends(data);
+      setTrends(await api.getTrends(cityId, 30));
     } catch (err) {
       console.error('Error fetching trends:', err);
+      setTrends(null);
     }
   };
 
-  const handleLocationSelect = (city) => {
-    setSelectedCity(city);
-  };
+  const latestAqi = aqiData?.measurements?.[0]?.aqi;
+  const activeColor = selectedCity ? getAqiBand(latestAqi).color : DEFAULT_TINT;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-800 to-teal-700 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-            VayuGuard
-          </h1>
-          <p className="text-blue-100">
-            Hyperlocal air-quality forecasting & health advisory
-          </p>
-        </div>
+    <div className="relative" style={{ '--aqi': activeColor }}>
+      <div className="ambient" />
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column: Map & Search */}
-          <div className="lg:col-span-2 space-y-4">
-            {/* Search Bar */}
-            <LocationSearch onSelectCity={handleLocationSelect} />
-
-            {/* Map */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <Map
-                locations={locations}
-                selectedCity={selectedCity}
-                onSelectCity={handleLocationSelect}
-              />
+      <div className="relative z-10 flex min-h-screen flex-col lg:h-screen">
+        {/* Top bar */}
+        <header className="flex items-center justify-between px-4 py-4 lg:px-6">
+          <div className="flex items-center gap-3">
+            <BreathMark />
+            <div>
+              <h1 className="text-lg font-bold leading-none tracking-tight text-white">VayuGuard</h1>
+              <p className="mt-1 text-[11px] text-[var(--mist-faint)]">India&rsquo;s air, hour by hour</p>
             </div>
           </div>
+          <div className="hidden items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 py-1.5 backdrop-blur-md sm:flex">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" style={{ boxShadow: '0 0 8px #34d399' }} />
+            <span className="text-[11px] text-[var(--mist-dim)]">Live · updates hourly</span>
+          </div>
+        </header>
 
-          {/* Right Column: AQI Details */}
-          <div className="space-y-4">
+        {/* Main */}
+        <main className="grid flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:min-h-0 lg:grid-cols-[1fr_minmax(360px,400px)] lg:gap-5 lg:px-6 lg:pb-6">
+          {/* Map */}
+          <section className="relative min-h-[380px] overflow-hidden rounded-3xl border border-[var(--line)] lg:h-full">
+            <div className="absolute inset-x-4 top-4 z-[1000] max-w-md">
+              <LocationSearch onSelectCity={setSelectedCity} />
+            </div>
+            <Map locations={locations} selectedCity={selectedCity} onSelectCity={setSelectedCity} />
+          </section>
+
+          {/* Rail */}
+          <aside className="space-y-4 lg:h-full lg:overflow-y-auto lg:pr-1">
             {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              <div className="panel rise border-l-2 border-l-red-400 p-4 text-sm text-[var(--mist)]">
                 {error}
               </div>
             )}
 
             {loading && (
-              <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <p className="text-gray-600 mt-2">Loading...</p>
+              <div className="panel p-6">
+                <div className="flex items-center gap-3 text-[var(--mist-dim)]">
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--line-strong)] border-t-[var(--sky)]" />
+                  <span className="text-sm">Reading the air…</span>
+                </div>
               </div>
             )}
 
@@ -118,14 +147,20 @@ export default function App() {
             )}
 
             {!selectedCity && !loading && (
-              <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-                <p className="text-gray-600">
-                  👈 Select a city from the map or search to view AQI details
-                </p>
-              </div>
+              <>
+                <div className="panel rise p-6">
+                  <BreathMark />
+                  <h2 className="mt-4 text-xl font-semibold text-white">Read the air near you</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--mist-dim)]">
+                    Tap a city on the map or search above to see its current air quality
+                    and what tomorrow looks like.
+                  </p>
+                </div>
+                <AqiLegend />
+              </>
             )}
-          </div>
-        </div>
+          </aside>
+        </main>
       </div>
     </div>
   );

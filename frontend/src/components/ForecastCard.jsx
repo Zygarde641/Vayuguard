@@ -1,26 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { getAQIStatus } from './AQICard';
-
-const AQI_COLORS = {
-  green: '#4caf50',
-  lime: '#8bc34a',
-  yellow: '#fdd835',
-  orange: '#ff9800',
-  red: '#f44336',
-  purple: '#7c1d12',
-  gray: '#999'
-};
+import { getAqiBand } from '../utils/aqi';
 
 export default function ForecastCard({ cityId }) {
   const [tomorrow, setTomorrow] = useState(null);
+  const [state, setState] = useState('loading'); // loading | ready | empty
 
   useEffect(() => {
     if (!cityId) return;
+    let active = true;
+    setState('loading');
     setTomorrow(null);
 
     api.getCityAirPollution(cityId)
       .then((data) => {
+        if (!active) return;
         const target = new Date();
         target.setDate(target.getDate() + 1);
 
@@ -40,35 +34,63 @@ export default function ForecastCard({ cityId }) {
             avg: Math.round(values.reduce((a, b) => a + b, 0) / values.length),
             peak: Math.max(...values)
           });
+          setState('ready');
+        } else {
+          setState('empty');
         }
       })
-      .catch((err) => console.error('Error fetching forecast:', err));
+      .catch(() => active && setState('empty'));
+
+    return () => { active = false; };
   }, [cityId]);
 
-  if (!tomorrow) return null;
+  if (state === 'empty') return null;
 
-  const { status, color } = getAQIStatus(tomorrow.avg);
+  const band = tomorrow ? getAqiBand(tomorrow.avg) : null;
+  const dayLabel = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toLocaleDateString('en-IN', { weekday: 'long' });
+  })();
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 space-y-3">
-      <h3 className="text-lg font-bold text-gray-800">🔮 Tomorrow's AQI</h3>
-
-      <div className="flex items-center gap-3">
-        <div
-          className="text-4xl font-bold text-white px-6 py-4 rounded-lg w-fit"
-          style={{ backgroundColor: AQI_COLORS[color] }}
-        >
-          {tomorrow.avg}
-        </div>
-        <div>
-          <p className="text-lg font-semibold text-gray-800">{status}</p>
-          <p className="text-xs text-gray-500">expected peak: {tomorrow.peak}</p>
-        </div>
+    <article className="panel rise p-6">
+      <div className="flex items-baseline justify-between">
+        <p className="eyebrow">Tomorrow · {dayLabel}</p>
+        <span className="text-[10px] text-[var(--mist-faint)]">forecast</span>
       </div>
 
-      <p className="text-xs text-gray-500">
-        Based on hourly forecast (OpenWeatherMap), converted to India CPCB scale
-      </p>
-    </div>
+      {state === 'loading' && (
+        <div className="mt-5 flex items-center gap-3 text-[var(--mist-dim)]">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--line-strong)] border-t-[var(--sky)]" />
+          <span className="text-sm">Reading the forecast…</span>
+        </div>
+      )}
+
+      {state === 'ready' && band && (
+        <>
+          <div className="mt-4 flex items-end gap-4">
+            <span className="stat text-5xl font-bold leading-none" style={{ color: band.color }}>
+              {tomorrow.avg}
+            </span>
+            <div className="pb-1">
+              <p className="text-base font-semibold" style={{ color: band.color }}>{band.label}</p>
+              <p className="text-xs text-[var(--mist-faint)]">
+                peak <span className="stat text-white">{tomorrow.peak}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Severity meter */}
+          <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+            <div
+              className="h-full rounded-full transition-[width] duration-700"
+              style={{ width: `${Math.min(100, (tomorrow.avg / 500) * 100)}%`, background: band.color }}
+            />
+          </div>
+          <p className="mt-3 text-xs text-[var(--mist-faint)]">Daily average, India CPCB scale</p>
+        </>
+      )}
+    </article>
   );
 }
