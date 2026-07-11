@@ -1,8 +1,9 @@
+/* @import must precede all other rules or PostCSS drops it (breaks map tiles) */
+@import 'leaflet/dist/leaflet.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import 'leaflet/dist/leaflet.css';
 
 /* ── Design tokens ───────────────────────────────────────────────── */
 :root {

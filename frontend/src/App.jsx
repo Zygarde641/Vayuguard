@@ -114,7 +114,7 @@ export default function App() {
         {/* Main */}
         <main className="grid flex-1 grid-cols-1 gap-4 px-4 pb-4 lg:min-h-0 lg:grid-cols-[1fr_minmax(360px,400px)] lg:gap-5 lg:px-6 lg:pb-6">
           {/* Map */}
-          <section className="relative min-h-[380px] overflow-hidden rounded-3xl border border-[var(--line)] lg:h-full">
+          <section className="relative h-[440px] overflow-hidden rounded-3xl border border-[var(--line)] lg:h-[calc(100vh-7.5rem)]">
             <div className="absolute inset-x-4 top-4 z-[1000] max-w-md">
               <LocationSearch onSelectCity={setSelectedCity} />
             </div>
