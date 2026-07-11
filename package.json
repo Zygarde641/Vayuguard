@@ -6,7 +6,7 @@
     "dev": "docker-compose up",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev:pipeline": "cd data-pipeline && python main.py",
+    "dev:pipeline": "cd data-pipeline && python data_pipeline.py",
     "build": "cd backend && npm install && cd ../frontend && npm install && npm run build",
     "test": "cd backend && npm test"
   },

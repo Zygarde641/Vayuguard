@@ -79,3 +79,17 @@ CREATE INDEX IF NOT EXISTS idx_weather_location_time ON weather(location_id, mea
 CREATE INDEX IF NOT EXISTS idx_daily_aggregate_location_date ON daily_aggregate(location_id, date DESC);
 CREATE INDEX IF NOT EXISTS idx_forecasts_location_date ON forecasts(location_id, forecast_date);
 CREATE INDEX IF NOT EXISTS idx_locations_city ON locations(city);
+
+-- Seed locations (idempotent) — ingestion jobs fetch data for every row here
+INSERT INTO locations (city, state, latitude, longitude) VALUES
+  ('Delhi', 'Delhi', 28.6139, 77.2090),
+  ('Mumbai', 'Maharashtra', 19.0760, 72.8777),
+  ('Bengaluru', 'Karnataka', 12.9716, 77.5946),
+  ('Hyderabad', 'Telangana', 17.3850, 78.4867),
+  ('Chennai', 'Tamil Nadu', 13.0827, 80.2707),
+  ('Kolkata', 'West Bengal', 22.5726, 88.3639),
+  ('Pune', 'Maharashtra', 18.5204, 73.8567),
+  ('Ahmedabad', 'Gujarat', 23.0225, 72.5714),
+  ('Jaipur', 'Rajasthan', 26.9124, 75.7873),
+  ('Lucknow', 'Uttar Pradesh', 26.8467, 80.9462)
+ON CONFLICT (city) DO NOTHING;

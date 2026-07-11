@@ -1,6 +1,6 @@
 import React from 'react';
 
-const getAQIStatus = (aqi) => {
+export const getAQIStatus = (aqi) => {
   if (!aqi) return { status: 'Unknown', color: 'gray' };
   if (aqi < 50) return { status: 'Good', color: 'green' };
   if (aqi < 100) return { status: 'Satisfactory', color: 'lime' };
@@ -98,14 +98,14 @@ export default function AQICard({ data }) {
             <p className="text-lg font-bold text-gray-800">
               {latestMeasurement.no2?.toFixed(1) || 'N/A'}
             </p>
-            <p className="text-xs text-gray-500">ppb</p>
+            <p className="text-xs text-gray-500">µg/m³</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-600">O₃</p>
             <p className="text-lg font-bold text-gray-800">
               {latestMeasurement.o3?.toFixed(1) || 'N/A'}
             </p>
-            <p className="text-xs text-gray-500">ppb</p>
+            <p className="text-xs text-gray-500">µg/m³</p>
           </div>
         </div>
       )}

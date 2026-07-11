@@ -73,7 +73,11 @@ class AQIService {
    */
   async getAQIByCityId(cityId, days = 7) {
     try {
-      const cacheKey = `aqi:city:${cityId}:${days}d`;
+      const id = parseInt(cityId, 10);
+      if (!Number.isInteger(id)) return null;
+      days = Number.isInteger(days) && days > 0 ? Math.min(days, 365) : 7;
+
+      const cacheKey = `aqi:city:${id}:${days}d`;
       
       // Check cache
       const cached = await redis.get(cacheKey);
@@ -87,7 +91,7 @@ class AQIService {
         FROM locations
         WHERE id = $1
       `;
-      const locResult = await db.query(locationQuery, [cityId]);
+      const locResult = await db.query(locationQuery, [id]);
       
       if (locResult.rows.length === 0) {
         return null;
@@ -97,28 +101,28 @@ class AQIService {
 
       // Get historical measurements
       const measurementsQuery = `
-        SELECT 
+        SELECT
           measured_at, aqi, pm25, pm10, no2, o3, so2, co
         FROM measurements
-        WHERE location_id = $1 
-          AND measured_at >= NOW() - INTERVAL '${days} days'
+        WHERE location_id = $1
+          AND measured_at >= NOW() - make_interval(days => $2)
         ORDER BY measured_at DESC
       `;
 
-      const measResult = await db.query(measurementsQuery, [cityId]);
+      const measResult = await db.query(measurementsQuery, [id, days]);
 
       // Get weather data
       const weatherQuery = `
-        SELECT 
+        SELECT
           measured_at, temperature, humidity, wind_speed, pressure, precipitation
         FROM weather
-        WHERE location_id = $1 
-          AND measured_at >= NOW() - INTERVAL '${days} days'
+        WHERE location_id = $1
+          AND measured_at >= NOW() - make_interval(days => $2)
         ORDER BY measured_at DESC
         LIMIT 1
       `;
 
-      const weatherResult = await db.query(weatherQuery, [cityId]);
+      const weatherResult = await db.query(weatherQuery, [id, days]);
 
       const data = {
         location,
@@ -142,26 +146,35 @@ class AQIService {
    */
   async getTrends(cityId, days = 30) {
     try {
-      const cacheKey = `trends:city:${cityId}:${days}d`;
-      
+      const id = parseInt(cityId, 10);
+      if (!Number.isInteger(id)) return [];
+      days = Number.isInteger(days) && days > 0 ? Math.min(days, 365) : 30;
+
+      const cacheKey = `trends:city:${id}:${days}d`;
+
       const cached = await redis.get(cacheKey);
       if (cached) {
         return JSON.parse(cached);
       }
 
+      // Aggregate daily stats directly from measurements
       const query = `
-        SELECT 
-          date, 
-          avg_aqi, max_aqi, min_aqi,
-          avg_pm25, avg_pm10,
-          avg_temperature, avg_humidity
-        FROM daily_aggregate
-        WHERE location_id = $1 
-          AND date >= CURRENT_DATE - INTERVAL '${days} days'
-        ORDER BY date DESC
+        SELECT
+          measured_at::date AS date,
+          ROUND(AVG(aqi), 2) AS avg_aqi,
+          MAX(aqi) AS max_aqi,
+          MIN(aqi) AS min_aqi,
+          ROUND(AVG(pm25), 2) AS avg_pm25,
+          ROUND(AVG(pm10), 2) AS avg_pm10
+        FROM measurements
+        WHERE location_id = $1
+          AND measured_at >= CURRENT_DATE - make_interval(days => $2)
+          AND aqi IS NOT NULL
+        GROUP BY measured_at::date
+        ORDER BY date ASC
       `;
 
-      const result = await db.query(query, [cityId]);
+      const result = await db.query(query, [id, days]);
       
       await redis.setex(cacheKey, 1800, JSON.stringify(result.rows));
 
@@ -177,6 +190,8 @@ class AQIService {
    */
   async getHotspots(limit = 10) {
     try {
+      limit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 100) : 10;
+
       const cacheKey = `hotspots:worst:${limit}`;
       
       const cached = await redis.get(cacheKey);

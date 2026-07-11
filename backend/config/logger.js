@@ -1,4 +1,8 @@
 const winston = require('winston');
+const fs = require('fs');
+
+// winston's File transport doesn't create the directory itself
+fs.mkdirSync('logs', { recursive: true });
 
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',

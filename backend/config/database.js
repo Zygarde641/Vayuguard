@@ -1,5 +1,8 @@
-const { Pool } = require('pg');
+const { Pool, types } = require('pg');
 const logger = require('./logger');
+
+// pg returns NUMERIC/DECIMAL as strings; parse to numbers so the API serves numbers
+types.setTypeParser(types.builtins.NUMERIC, parseFloat);
 
 const pool = new Pool({
   user: process.env.DB_USER,

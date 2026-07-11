@@ -2,6 +2,7 @@ const axios = require('axios');
 const db = require('../config/database');
 const redis = require('../config/redis');
 const logger = require('../config/logger');
+const { computeCpcbAqi } = require('../utils/cpcbAqi');
 
 /**
  * OpenWeatherMap Air Pollution API scale thresholds.
@@ -20,7 +21,7 @@ const AQI_BREAKPOINTS = {
 class OpenWeatherService {
   constructor() {
     this.apiKey = process.env.OPENWEATHER_API_KEY;
-    this.baseURL = process.env.OPENWEATHER_API_URL || 'http://api.openweathermap.org/data/2.5';
+    this.baseURL = process.env.OPENWEATHER_API_URL || 'https://api.openweathermap.org/data/2.5';
   }
 
   /**
@@ -181,17 +182,18 @@ class OpenWeatherService {
    * @returns {Object} Mapped data matching measurements table columns
    */
   mapToMeasurement(entry) {
-    const { components, main, dt } = entry;
+    const { components, dt } = entry;
     return {
-      aqi: main?.aqi || null,
-      pm25: components?.pm2_5 || null,
-      pm10: components?.pm10 || null,
-      no2: components?.no2 || null,
-      o3: components?.o3 || null,
-      so2: components?.so2 || null,
-      co: components?.co || null,
-      no: components?.no || null,
-      nh3: components?.nh3 || null,
+      // measurements.aqi holds India CPCB-scale AQI (0-500), not OpenWeather's 1-5 index
+      aqi: computeCpcbAqi(components?.pm2_5, components?.pm10),
+      pm25: components?.pm2_5 ?? null,
+      pm10: components?.pm10 ?? null,
+      no2: components?.no2 ?? null,
+      o3: components?.o3 ?? null,
+      so2: components?.so2 ?? null,
+      co: components?.co ?? null,
+      no: components?.no ?? null,
+      nh3: components?.nh3 ?? null,
       measured_at: dt ? new Date(dt * 1000) : new Date()
     };
   }
@@ -381,6 +383,7 @@ class OpenWeatherService {
         const { aqi, breakdown } = this.calculateAQIFromComponents(entry.components);
         entry.main.aqi_label = OpenWeatherService.getAQILabel(entry.main.aqi);
         entry.main.aqi_calculated = aqi;
+        entry.main.aqi_cpcb = computeCpcbAqi(entry.components?.pm2_5, entry.components?.pm10);
         entry.aqi_breakdown = breakdown;
       }
     }
@@ -402,10 +405,11 @@ class OpenWeatherService {
 
     const data = await this.getForecastAirPollution(lat, lon);
 
-    // Enrich with AQI labels
+    // Enrich with AQI labels and India CPCB-scale AQI
     if (data?.list?.length > 0) {
       for (const entry of data.list) {
         entry.main.aqi_label = OpenWeatherService.getAQILabel(entry.main.aqi);
+        entry.main.aqi_cpcb = computeCpcbAqi(entry.components?.pm2_5, entry.components?.pm10);
       }
     }
 

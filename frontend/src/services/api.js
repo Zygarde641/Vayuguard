@@ -24,8 +24,12 @@ const api = {
     client.get(`/aqi/${cityId}/trends`, { params: { days } }).then(res => res.data),
 
   // Get hotspots
-  getHotspots: (limit = 10) => 
-    client.get('/aqi/hotspots/worst', { params: { limit } }).then(res => res.data)
+  getHotspots: (limit = 10) =>
+    client.get('/aqi/hotspots/worst', { params: { limit } }).then(res => res.data),
+
+  // Get current + 4-day hourly air pollution forecast for a city
+  getCityAirPollution: (cityId) =>
+    client.get(`/air-pollution/city/${cityId}`).then(res => res.data)
 };
 
 export default api;

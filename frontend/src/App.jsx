@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Map from './components/Map';
 import LocationSearch from './components/LocationSearch';
 import AQICard from './components/AQICard';
+import ForecastCard from './components/ForecastCard';
 import TrendsChart from './components/TrendsChart';
 import api from './services/api';
 
@@ -111,6 +112,7 @@ export default function App() {
             {selectedCity && aqiData && !loading && (
               <>
                 <AQICard data={aqiData} />
+                <ForecastCard cityId={selectedCity.id} />
                 {trends && <TrendsChart data={trends} />}
               </>
             )}

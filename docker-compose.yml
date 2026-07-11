@@ -13,6 +13,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./backend/db/002_add_openweather_pollution.sql:/docker-entrypoint-initdb.d/02-openweather.sql
+      - ./backend/db/003_fix_measurements.sql:/docker-entrypoint-initdb.d/03-fix-measurements.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 10s
@@ -46,6 +48,8 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - NODE_ENV=${NODE_ENV}
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY}
+      - OPENWEATHER_API_URL=${OPENWEATHER_API_URL:-https://api.openweathermap.org/data/2.5}
     depends_on:
       postgres:
         condition: service_healthy

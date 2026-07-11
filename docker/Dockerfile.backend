@@ -5,7 +5,8 @@ WORKDIR /app
 
 COPY backend/package*.json ./
 
-RUN npm install --production
+# dev deps included: docker-compose overrides CMD with `npm run dev` (nodemon)
+RUN npm install
 
 COPY backend/ ./
 

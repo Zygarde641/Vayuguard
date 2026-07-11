@@ -26,10 +26,10 @@ jobs:
           - 5432:5432
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18'
 
@@ -57,7 +57,7 @@ jobs:
     if: github.event_name == 'push'
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Build backend Docker image
       run: docker build -f docker/Dockerfile.backend -t vayuguard-backend:${{ github.sha }} .
